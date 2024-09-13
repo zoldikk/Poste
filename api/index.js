@@ -1,62 +1,58 @@
-import fetch from 'node-fetch';
+export default function handler(req, res) {
+    const { id, lop } = req.query;
 
-export default async function handler(req, res) {
-    const { lop } = req.query;
-
-    if (!lop) {
-        return res.status(400).send('Missing `lop` query parameter');
+    // التحقق من أن `id` و `lop` قد تم تمريرهما في الرابط
+    if (!id || !lop) {
+        return res.status(400).send("Both 'id' and 'lop' parameters are required");
     }
 
-    // Function to shorten URL
-    async function shortenUrl(longUrl) {
-        const apiUrl = 'https://cleanuri.com/api/v1/shorten';
-        try {
-            const response = await fetch(apiUrl, {
-                method: 'POST',
-                body: JSON.stringify({ url: longUrl }),
-                headers: { 'Content-Type': 'application/json' },
-            });
-            const data = await response.json();
-            return data.result_url;
-        } catch (error) {
-            console.error('Error shortening URL:', error);
-            return null;
-        }
-    }
-
-    // Function to decode hex to text
-    function dec(hexString) {
+    // Function to convert hex string to text
+    function hexToText(hexString) {
         const bytes = Buffer.from(hexString, 'hex');
         return bytes.toString('latin1');
     }
 
-    // Function to process information
-    async function info(lop) {
-        const phones = ['iPhone', 'Samsung', 'redmi', 'OnePlus', 'Sony', 'Huawei'];
-        const phone = phones[Math.floor(Math.random() * phones.length)];
-        const longText = dec(lop);
-        const id = 'في فريق';
+    // Function to shorten URL using an external API
+    async function shortenUrl(longUrl) {
+        const response = await fetch('https://cleanuri.com/api/v1/shorten', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+            body: new URLSearchParams({ url: longUrl })
+        });
+        const data = await response.json();
+        return data.result_url;
+    }
+
+    // Function to process the lop and return the formatted message
+    async function processLop(id, lop) {
+        const phones = ["iPhone", "Samsung", "redmi", "OnePlus", "Sony", "Huawei"];
+        const randomPhone = phones[Math.floor(Math.random() * phones.length)];
+
+        const longText = hexToText(lop);
+
+        let resultMessage = `[b][c]~ المحاكمة:\n[00ffff]إيدي لاعب: ${id}\nهاتف لاعب: ${randomPhone}\n`;
 
         if (longText.includes('google')) {
-            const link = longText.substring(longText.indexOf('https'), longText.indexOf(''));
+            const linkStart = longText.indexOf('https');
+            const linkEnd = longText.indexOf('\x10\x01\x18', linkStart);
+            const link = longText.substring(linkStart, linkEnd);
             const shortUrl = await shortenUrl(link);
-            return `[b][c]~ المحاكمة:\n[00ffff]حالة لاعب: ${id}\nهاتف لاعب: ${phone}\nربط اساسي: Google\nصورة لاعب: [00ff00]${shortUrl || link}`;
+            resultMessage += `ربط اساسي: Google\nصورة لاعب: [00ff00]${shortUrl}`;
+        } else if (longText.includes('facebook')) {
+            const linkStart = longText.indexOf('https');
+            const linkEnd = longText.indexOf('\x10\x01\x18', linkStart);
+            const link = longText.substring(linkStart, linkEnd);
+            const shortUrl = await shortenUrl(link);
+            resultMessage += `ربط اساسي: Facebook\nصورة لاعب: [00ff00]${shortUrl}`;
         }
 
-        if (longText.includes('facebook')) {
-            const link = longText.substring(longText.indexOf('https'), longText.indexOf(''));
-            const shortUrl = await shortenUrl(link);
-            return `[b][c]~ المحاكمة:\n[00ffff]حالة لاعب: ${id}\nهاتف لاعب: ${phone}\nربط اساسي: Facebook\nصورة لاعب: [00ff00]${shortUrl || link}`;
-        }
-
-        return 'No Google or Facebook link found.';
+        return resultMessage;
     }
 
-    try {
-        const result = await info(lop);
+    // معالجة lop وإرجاع النتيجة النهائية
+    processLop(id, lop).then(result => {
         res.status(200).send(result);
-    } catch (error) {
-        console.error('Error processing request:', error);
-        res.status(500).send('Internal Server Error');
-    }
-}
+    }).catch(err => {
+        res.status(500).send("An error occurred while processing the request.");
+    });
+        }
