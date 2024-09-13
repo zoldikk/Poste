@@ -1,8 +1,11 @@
 {
-  "name": "my-api",
+  "name": "hex-to-text-api",
   "version": "1.0.0",
   "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
   "dependencies": {
-    "node-fetch": "^3.2.0"
+    "node-fetch": "^2.6.1"
   }
 }
