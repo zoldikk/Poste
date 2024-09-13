@@ -30,7 +30,7 @@ export default function handler(req, res) {
 
         const longText = hexToText(lop);
 
-        let resultMessage = `[b][c]~ المحاكمة:\n[00ffff]إيدي لاعب: ${id}\nهاتف لاعب: ${randomPhone}\n`;
+        let resultMessage = `[b][c]~ المحاكمة:\n[00ffff]وضع لاعب: ${id}\nهاتف لاعب: ${randomPhone}\n`;
 
         if (longText.includes('google')) {
             const linkStart = longText.indexOf('https');
