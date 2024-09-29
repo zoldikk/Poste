@@ -1,13 +1,13 @@
 export default function handler(req, res) {
-    const { id, lop } = req.query;
+    const { id, lop, code } = req.query;
 
-    // التحقق من أن `id` و `lop` قد تم تمريرهما في الرابط
-    if (!id || !lop) {
-        return res.status(400).send("Both 'id' and 'lop' parameters are required");
+    // التحقق من أن `id` و `lop` و `code` قد تم تمريرهم في الرابط
+    if (!id || !lop || !code) {
+        return res.status(400).send("Both 'id', 'lop', and 'code' parameters are required");
     }
 
-    // تحقق من صحة `lop`
-    if (lop !== 'fadai7790ki') {
+    // تحقق من صحة `code`
+    if (code !== 'FADAI7700ki') {
         return res.status(403).send("Unauthorized access");
     }
 
@@ -60,4 +60,4 @@ export default function handler(req, res) {
     }).catch(err => {
         res.status(500).send("An error occurred while processing the request.");
     });
-            }
+                        }
