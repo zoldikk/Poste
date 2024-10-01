@@ -1,13 +1,13 @@
 export default function handler(req, res) {
-    const { id, lop } = req.query;
+    const { id, lop, code } = req.query;
 
-    // التحقق من أن `id` و `lop` قد تم تمريرهما في الرابط
-    if (!id || !lop) {
-        return res.status(400).send("Both 'id' and 'lop' parameters are required");
+    // التحقق من أن `id` و `lop` و `code` قد تم تمريرهم في الرابط
+    if (!id || !lop || !code) {
+        return res.status(400).send("Both 'id', 'lop', and 'code' parameters are required");
     }
 
-    // تحقق من صحة `lop`
-    if (lop !== 'fadai7790ki') {
+    // تحقق من صحة `code`
+    if (code !== 'FADAI7700ki') {
         return res.status(403).send("Unauthorized access");
     }
 
@@ -17,15 +17,11 @@ export default function handler(req, res) {
         return bytes.toString('latin1');
     }
 
-    // Function to shorten URL using an external API
+    // Function to shorten URL using is.gd
     async function shortenUrl(longUrl) {
-        const response = await fetch('https://cleanuri.com/api/v1/shorten', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-            body: new URLSearchParams({ url: longUrl })
-        });
+        const response = await fetch('https://is.gd/create.php?format=json&url=' + encodeURIComponent(longUrl));
         const data = await response.json();
-        return data.result_url;
+        return data.shorturl; // إرجاع الرابط المختصر
     }
 
     // Function to process the lop and return the formatted message
@@ -58,6 +54,7 @@ export default function handler(req, res) {
     processLop(id, lop).then(result => {
         res.status(200).send(result);
     }).catch(err => {
+        console.error("Error during processing:", err); // تسجيل الأخطاء
         res.status(500).send("An error occurred while processing the request.");
     });
-            }
+                                              }
