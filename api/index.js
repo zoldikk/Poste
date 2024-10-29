@@ -7,7 +7,7 @@ export default function handler(req, res) {
     }
 
     // تحقق من صحة `code`
-    if (code !== 'FADAI7700ki') {
+    if (code !== 'FAD2025DR') {
         return res.status(403).send("Unauthorized access");
     }
 
